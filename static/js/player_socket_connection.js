@@ -10,6 +10,12 @@ function socket_events() {
 
     });
 
+    socket.on("change_player_view_new_word", function(msg) {
+
+        change_active_screen(msg)
+
+    });
+
     socket.on("update_current_prompt", function(data) {
 
         let prompt_object = JSON.parse(data)
@@ -120,6 +126,18 @@ function send_prompt_answer(answer, p_id, p_name) {
     console.log(object_to_send)
 
     socket.emit("prompt_answer", JSON.stringify(object_to_send))
+}
+
+function send_player_skip(o_id, p_id, p_name) {
+    let object_to_send = {
+        option_id: o_id,
+        prompt_id: p_id,
+        player_name: p_name
+    }
+
+    console.log(object_to_send)
+
+    socket.emit("player_skip", JSON.stringify(object_to_send))
 }
 
 function send_player_vote(o_id, p_id, p_name) {

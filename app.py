@@ -19,6 +19,11 @@ def send_prompt_to_user(data):
     emit("update_current_prompt", json.dumps(data), room=data["recipient"])
     # socketio.sleep(0)
 
+def send_new_prompt_to_user(data):
+    emit("update_current_prompt", json.dumps(data), room=data["recipient"])
+    emit("change_player_view_new_word", "player_prompt_answer", broadcast=True)
+    # socketio.sleep(0)
+
 def send_word_to_user(data):
     emit("update_current_word", json.dumps(data), room=data["recipient"])
     # socketio.sleep(0)
@@ -110,6 +115,7 @@ def server_show_scoreboard(data):
 
 
 game.em.on("prompt_to_user", send_prompt_to_user)
+game.em.on("new_prompt_to_user", send_new_prompt_to_user)
 game.em.on("word_to_user", send_word_to_user)
 game.em.on("send_prompt_with_vote_option", send_prompt_with_vote_options)
 game.em.on("overwrite_player_name", overwrite_player_name)
@@ -187,6 +193,21 @@ def handle_player_vote(data):
     print("player_vote", data_for_function)
     # eventlet.sleep(0)
     game.em.emit("player_vote", data_for_function)
+    # eventlet.sleep(0)
+
+@socketio.on("player_skip")
+def handle_player_skip(data):
+     # {"player_id": 0, "prompt_id": 1, "voted_for": 0}
+    # eventlet.sleep(0)
+    skip_data = json.loads(data)
+
+    data_for_function = {"player_id": ga.get_player_id_from_name(skip_data["player_name"]),
+                         "prompt_id": skip_data["prompt_id"],
+                         "voted_for": skip_data["option_id"]}
+    print("player_skip", data_for_function)
+    # eventlet.sleep(0)
+    # game.em.emit("player_skip", data_for_function)
+    game.em.emit("player_skip")
     # eventlet.sleep(0)
 
 

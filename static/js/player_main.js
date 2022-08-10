@@ -36,6 +36,20 @@ function set_active_screen(div_id) {
     }
 }
 
+function change_active_screen(div_id) {
+
+    replace_prompt(current_prompt)
+    display_options(current_options)
+
+    for (div of all_divs) {
+        if (div.id == div_id) {
+            div.style.display = "block"
+        } else {
+            div.style.display = "none"
+        }
+    }
+}
+
 function display_options(options) {
 
     let list = document.getElementById("vote_options")
@@ -56,6 +70,20 @@ function display_options(options) {
 function display_prompt(prompt) {
 
     // TO DO clean it up
+    document.getElementsByClassName("current_prompt")[0].innerText = current_prompt
+    document.getElementsByClassName("current_prompt")[1].innerText = current_prompt
+    for (let i = 0; i < current_taboo_words.length; i++) {
+        document.getElementById("current_taboo_words").innerHTML += ('<li>'+current_taboo_words[i]+'</li>');
+    }
+}
+
+function clear_taboo_list() {
+    document.getElementById("current_taboo_words").innerHTML = "";
+}
+
+function replace_prompt(prompt) {
+
+    clear_taboo_list()
     document.getElementsByClassName("current_prompt")[0].innerText = current_prompt
     document.getElementsByClassName("current_prompt")[1].innerText = current_prompt
     for (let i = 0; i < current_taboo_words.length; i++) {
@@ -107,6 +135,17 @@ function handle_player_vote(option) {
 
 }
 
+function handle_player_skip(option) {
+
+    console.log(option)
+
+    let options_id = parseInt(option.slice(-1))
+    options_id--
+
+    send_player_skip(options_id, current_prompt_id, my_player_name)
+
+}
+
 window.onload = () => {
 
 
@@ -131,16 +170,24 @@ window.onload = () => {
         }
     }
 
-    document.querySelector("#prompt_answer_submit").onclick = () => {
-        // Prompt Answer Submit Button pressed
-        let prompt_answer = document.querySelector("#prompt_answer").value
+//    document.querySelector("#prompt_answer_submit").onclick = () => {
+//        // Prompt Answer Submit Button pressed
+//        let prompt_answer = document.querySelector("#prompt_answer").value
+//
+//        if (prompt_answer == "") {
+//            // handle empty string
+//        } else {
+//            handle_prompt_answer(prompt_answer) //sends answer with metadata to socket server
+//            set_active_screen('player_wait')
+//        }
+//    }
 
-        if (prompt_answer == "") {
-            // handle empty string
-        } else {
-            handle_prompt_answer(prompt_answer) //sends answer with metadata to socket server
-            set_active_screen('player_wait')
-        }
+    document.querySelector("#prompt_answer_submit").onclick = (event) => {
+        console.log("Player has pressed skip")
+
+        let target = getEventTarget(event)
+        handle_player_skip(target.id)
+        
     }
 
     // https://stackoverflow.com/questions/5116929/get-clicked-li-from-ul-onclick

@@ -174,7 +174,10 @@ async function start_prompt_answer_countdown(seconds) {
 
     }
     all_answers_given = false
-    console.log("Start Vote Loop")
+    // console.log("Start Vote Loop")
+    // start_vote_loop()
+    
+    console.log("Start Next Player's Turn")
     start_vote_loop()
 
 }

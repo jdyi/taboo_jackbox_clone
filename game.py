@@ -74,6 +74,7 @@ class Game:
         em.on("start_game", self.start_game)
         em.on("debug_msg", self.print_debug)
         em.on("player_answer", self.add_player_answer)
+        em.on("player_skip", self.send_new_prompts_to_players_after_skip)
         em.on("player_vote", self.add_player_vote)
         em.on("change_game_state", self.set_game_state)
         em.on("start_waiting_for_players", self.start_waiting_for_players)
@@ -95,13 +96,50 @@ class Game:
                 return player.player_id
 
     def send_prompts_to_players(self):
-        for index, player_id_list in enumerate(self.prompt_assignments):
-            prompt_to_send = self.prompts[index]
-            taboo_words = db.get_specific_taboo_words(prompt_to_send)
-            for player in player_id_list:
-                sid = self.connected_players[player-1].player_sid
-                em.emit("prompt_to_user", {
-                        "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": index, "taboo_words": taboo_words})
+        prompt_to_send = self.select_word_to_play()[0]
+        print("This is prompt_to_send", prompt_to_send)
+        taboo_words = db.get_specific_taboo_words(prompt_to_send)
+        for player in range(len(self.connected_players)):
+            print("This is player", player)
+            print("This is connectedplayer indexed", self.connected_players[player])
+            sid = self.connected_players[player].player_sid
+            em.emit("prompt_to_user", {
+                    "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": 0, "taboo_words": taboo_words})
+
+#    def send_prompts_to_players(self):
+#        for index, player_id_list in enumerate(self.prompt_assignments):
+#            prompt_to_send = self.prompts[index]
+#            print("This is prompt_to_send", prompt_to_send)
+#            print("This is index", index)
+#            taboo_words = db.get_specific_taboo_words(prompt_to_send)
+#            for player in player_id_list:
+#                print("This is player", player)
+#                print("This is connectedplayer indexed", self.connected_players[player-1])
+#                sid = self.connected_players[player-1].player_sid
+#                em.emit("prompt_to_user", {
+#                        "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": index, "taboo_words": taboo_words})
+    
+    def send_new_prompts_to_players_after_skip(self):
+        prompt_to_send = self.select_word_to_play()[0]
+        print("This is prompt_to_send", prompt_to_send)
+        taboo_words = db.get_specific_taboo_words(prompt_to_send)
+        for player in range(len(self.connected_players)):
+            print("This is player", player)
+            print("This is connectedplayer indexed", self.connected_players[player])
+            sid = self.connected_players[player].player_sid
+            em.emit("new_prompt_to_user", {
+                    "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": 0, "taboo_words": taboo_words})
+
+
+#    def send_new_prompts_to_players_after_skip(self):
+#        for index, player_id_list in enumerate(self.prompt_assignments):
+#            prompt_to_send = self.prompts[index]
+#            print("I am sending new prompt", prompt_to_send)
+#            taboo_words = db.get_specific_taboo_words(prompt_to_send)
+#            for player in player_id_list:
+#                sid = self.connected_players[player-1].player_sid
+#                em.emit("prompt_to_user", {
+#                        "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": index, "taboo_words": taboo_words})
 
     def calc_points_for_prompt(self, prompt_id):
       #  print(self.prompts[prompt_id])
@@ -218,6 +256,35 @@ class Game:
         for p in self.connected_players:
             print(p.player_id, p.player_name, p.player_score, p.player_sid)
 
+    def get_player_turn_order(self):
+        p_list = list(range(1,len(self.connected_players)+1))
+        random.shuffle(p_list)
+        return p_list
+
+#    def assign_players_to_prompts(self):
+#
+#        p_a = [None] * len(self.prompts)
+#        player_index = len(self.connected_players)
+#        i = 0
+#        while i < len(self.prompts):
+#
+#            p_list = []
+#
+#            # clean up
+#            p_list.append(player_index)
+#            player_index = player_index - 1
+#            p_list.append(player_index)
+#            player_index = player_index - 1
+#
+#            if player_index == 1:
+#                p_list.append(player_index)
+#                player_index = player_index - 1
+#
+#            p_a[i] = p_list
+#            i = i + 1
+#
+#        self.prompt_assignments = p_a
+
     def assign_players_to_prompts(self):
 
         p_a = [None] * len(self.prompts)
@@ -239,7 +306,8 @@ class Game:
 
             p_a[i] = p_list
             i = i + 1
-
+        
+        print(p_a)
         self.prompt_assignments = p_a
 
     def calc_prompts_amount(self, player_amount):
@@ -257,6 +325,11 @@ class Game:
         words = db.get_words(4)
         random.shuffle(words)
         return words[:self.prompts_to_play]
+    
+    def select_word_to_play(self):
+        words = db.get_words_no_limit()
+        random.shuffle(words)
+        return words[:1]
 
     def start_waiting_for_players(self):
         # NEW GAME
@@ -314,6 +387,37 @@ class Game:
         # simulate user input
 
         # print("los gehts mit prompts")
+
+    def start_turn_loop(self):
+        em.emit("change_game_state", 1)
+
+        self.prompts_to_play = self.calc_prompts_amount(
+            len(self.connected_players))
+        self.prompts = self.select_words()
+
+        # make prompt_answers as big as prompts
+        self.prompt_answers = [[]] * len(self.prompts)
+
+        for i in range(0, len(self.prompt_answers)):
+            self.prompt_answers[i] = []
+
+        self.assign_players_to_prompts()
+
+        # send taboo words to users
+        self.send_prompts_to_players()
+
+        # wait for XX seconds
+
+        # simulated player answers
+
+        if (testMode):
+            for player in self.connected_players:
+                for_which_prompt = self.get_assigned_prompt_id(
+                    player.player_id)
+                em.emit("player_answer", {
+                        "player_id": player.player_id, "prompt_id": for_which_prompt, "answer": r.get_random_word()})
+
+        print(self.prompt_answers)
 
     def player_id_to_name(self, player_id):
         return self.connected_players[player_id-1].player_name

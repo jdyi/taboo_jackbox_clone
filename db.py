@@ -64,6 +64,30 @@ def get_words(how_many_words):
     
     return list_to_return
 
+def get_words_no_limit():
+    con = get_db()
+    cur = con.cursor()
+    cur.execute("select WORD from WORDS")
+    
+    list_to_return = []
+
+    for row in cur.fetchall():
+        list_to_return.append(row[0])
+    
+    return list_to_return
+
+def get_word_to_play(how_many_words):
+    con = get_db()
+    cur = con.cursor()
+    cur.execute("select WORD from WORDS WHERE WORD_USAGE = 0")
+    
+    list_to_return = []
+
+    for row in cur.fetchall():
+        list_to_return.append(row[0])
+    
+    return list_to_return
+
 def get_specific_taboo_words(word):
     con = get_db()
     cur = con.cursor()
