@@ -114,6 +114,13 @@ def server_show_scoreboard(data):
     # eventlet.sleep(0)
 
 
+def server_switch_player():
+    # eventlet.sleep(0)
+    emit("server_switch_player", room=ga.main_screen_sid)
+    # socketio.sleep(0)
+    # eventlet.sleep(0)
+
+
 game.em.on("prompt_to_user", send_prompt_to_user)
 game.em.on("new_prompt_to_user", send_new_prompt_to_user)
 game.em.on("word_to_user", send_word_to_user)
@@ -126,6 +133,7 @@ game.em.on("server_everybody_has_given_answer",
            server_everybody_has_given_answer)
 game.em.on("server_update_results", server_update_results)
 game.em.on("server_show_scoreboard", server_show_scoreboard)
+game.em.on("server_switch_player", server_switch_player)
 
 
 @socketio.on("player_connect")
@@ -165,6 +173,13 @@ def handle_game_start():
 def handle_start_of_vote_loop():
     # eventlet.sleep(0)
     game.em.emit("start_prompt_vote_loop")
+    # eventlet.sleep(0)
+
+
+@socketio.on("switch_to_next_player")
+def handle_switch_to_next_player():
+    # eventlet.sleep(0)
+    game.em.emit("switch_to_next_player")
     # eventlet.sleep(0)
 
 

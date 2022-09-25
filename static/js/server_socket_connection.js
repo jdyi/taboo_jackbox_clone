@@ -71,6 +71,12 @@ function socket_events() {
 
     });
 
+    socket.on("server_switch_player", function() {
+
+        start_prompt_answer_countdown(90)
+
+    });
+
     socket.on("server_start_game_succesful", function(state) {
 
         if (state == 1) {
@@ -115,6 +121,13 @@ function start_game() {
 function start_vote_loop() {
 
     socket.emit("start_vote_loop")
+
+
+}
+
+function switch_to_next_player() {
+
+    socket.emit("switch_to_next_player")
 
 
 }

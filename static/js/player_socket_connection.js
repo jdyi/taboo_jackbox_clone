@@ -115,6 +115,13 @@ function start_vote_loop() {
 
 }
 
+function switch_to_next_player() {
+
+    socket.emit("switch_to_next_player")
+
+
+}
+
 function send_prompt_answer(answer, p_id, p_name) {
 
     let object_to_send = {

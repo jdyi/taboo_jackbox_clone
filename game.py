@@ -27,6 +27,8 @@ class Game:
 
     answer_counter = 0
 
+    turn_order = {}
+
     prompt_answers = {}
 
     events_thread = None
@@ -79,6 +81,7 @@ class Game:
         em.on("change_game_state", self.set_game_state)
         em.on("start_waiting_for_players", self.start_waiting_for_players)
         em.on("start_prompt_vote_loop", self.start_prompt_vote_loop)
+        em.on("switch_to_next_player", self.switch_to_next_player)
 
         while True:
             if self.waiting_for_user_input == True:
@@ -361,7 +364,9 @@ class Game:
         for i in range(0, len(self.prompt_answers)):
             self.prompt_answers[i] = []
 
-        self.assign_players_to_prompts()
+        self.get_player_order()        
+
+        # self.assign_players_to_prompts()
 
         # send taboo words to users
         self.send_prompts_to_players()
@@ -433,6 +438,11 @@ class Game:
             return True
         else:
             return False
+
+    def switch_to_next_player(self):
+        
+        em.emit("server_switch_player")
+        return "dsa"
 
     def start_prompt_vote_loop(self):
         em.emit("change_game_state", 2)
@@ -562,6 +572,13 @@ class Game:
 
         self.waiting_for_user_input = False
         print("cD stop")
+
+    def get_player_order(self):
+        cnt=1
+        for player in self.connected_players:
+            self.turn_order.update({player.player_sid: cnt})
+            cnt+=1
+            
 
 
 sampleNames = ["Jene",

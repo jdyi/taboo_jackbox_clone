@@ -85,7 +85,7 @@ function update_results(data) {
 
 function show_updated_results() {
 
-    // TO DO CLEAN up
+    // TO DO CLEAN up 
 
     let author_list = document.querySelector("#server_options_authors")
     author_list.innerText = ""
@@ -156,7 +156,7 @@ async function start_vote_countdown(seconds) {
 
 async function start_prompt_answer_countdown(seconds) {
 
-
+    
     while (seconds > 0) {
 
         // is true, when socket get the event from server
@@ -178,8 +178,32 @@ async function start_prompt_answer_countdown(seconds) {
     // start_vote_loop()
     
     console.log("Start Next Player's Turn")
-    start_vote_loop()
+    switch_to_next_player()
 
+}
+
+async function start_pre_turn_countdown(seconds) {
+    while (seconds > 0) {
+
+
+        if (ready_button_pressed == true) {
+            console.log("votes givennnn")
+            break
+        }
+
+        await Sleep(1000)
+        seconds--
+        document.querySelector("#server_countdown_prompt").innerText = seconds
+
+
+
+
+
+    }
+    console.log("Waiting for results event")
+    ready_button_pressed = false
+    vote_countdown = 15
+    document.querySelector("#server_countdown_prompt").innerText = 15
 }
 
 function Sleep(milliseconds) {
