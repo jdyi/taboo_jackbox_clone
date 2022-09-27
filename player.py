@@ -5,6 +5,7 @@ class Player:
     player_id = -1
     prompt_answers = {}
     player_sid = None
+    player_team = None
 
     def __init__(self,name,sid):
         self.player_name = name

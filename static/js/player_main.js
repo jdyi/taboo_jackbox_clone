@@ -146,6 +146,28 @@ function handle_player_skip(option) {
 
 }
 
+function handle_player_start_turn_button(option) {
+
+    console.log(option)
+
+    let options_id = parseInt(option.slice(-1))
+    options_id--
+
+    send_player_start_turn_button(options_id, current_prompt_id, my_player_name)
+
+}
+
+function handle_player_team_button(option, color) {
+
+    console.log(option)
+
+    let options_id = parseInt(option.slice(-1))
+    options_id--
+
+    send_player_team_button(color, my_player_name)
+
+}
+
 window.onload = () => {
 
 
@@ -166,7 +188,7 @@ window.onload = () => {
 
         } else {
             handle_player_connect(player_name, player_ip_address)
-            set_active_screen('player_wait')
+            set_active_screen('player_choose_team')
         }
     }
 
@@ -198,6 +220,51 @@ window.onload = () => {
         let target = getEventTarget(event)
         handle_player_vote(target.id)
         set_active_screen('player_wait')
+
+    }
+
+    document.querySelector("#server_start_turn_button").onclick = (event) => {
+        console.log("Player has pressed start turn button")
+
+        let target = getEventTarget(event)
+        handle_player_start_turn_button(target.id)
+        set_active_screen('player_prompt_answer')
+
+    }
+    
+    // player chooses red team
+    document.querySelector("#player_red_team_button").onclick = (event) => {
+        console.log("Player has joined the red team")
+
+        let target = getEventTarget(event)
+        handle_player_team_button(target.id, "red")
+
+    }
+
+    // player chooses blue team
+    document.querySelector("#player_blue_team_button").onclick = (event) => {
+        console.log("Player has joined the blue team")
+
+        let target = getEventTarget(event)
+        handle_player_team_button(target.id, "blue")
+
+    }
+
+    // player chooses blue team
+    document.querySelector("#player_green_team_button").onclick = (event) => {
+        console.log("Player has joined the green team")
+
+        let target = getEventTarget(event)
+        handle_player_team_button(target.id, "green")
+
+    }
+
+    // player chooses blue team
+    document.querySelector("#player_yellow_team_button").onclick = (event) => {
+        console.log("Player has joined the yellow team")
+
+        let target = getEventTarget(event)
+        handle_player_team_button(target.id, "yellow")
 
     }
 

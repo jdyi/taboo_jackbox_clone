@@ -73,7 +73,34 @@ button {
     font-size: 5em;
 }
 
+#player_red_team_button {
+    border: 1px outset red;
+    background-color: lightcoral;
+    height:50px;
+    width:50px;
+ }
 
+ #player_blue_team_button {
+    border: 1px outset blue;
+    background-color: lightblue;
+    height:50px;
+    width:50px;
+ }
+
+ #player_green_team_button {
+    border: 1px outset green;
+    background-color: lightgreen;
+    height:50px;
+    width:50px;
+ }
+
+ #player_yellow_team_button {
+    border: 1px outset yellow;
+    background-color: lightyellow;
+    height:50px;
+    width:50px;
+ }
+ 
 /*   #player_connect {
     background-color: lightblue;
 }

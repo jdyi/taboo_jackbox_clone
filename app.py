@@ -121,6 +121,13 @@ def server_switch_player():
     # eventlet.sleep(0)
 
 
+def server_set_player_team(data):
+    # eventlet.sleep(0)
+    emit("server_set_player_team", json.dumps(data), room=ga.main_screen_sid)
+    # socketio.sleep(0)
+    # eventlet.sleep(0)
+
+
 game.em.on("prompt_to_user", send_prompt_to_user)
 game.em.on("new_prompt_to_user", send_new_prompt_to_user)
 game.em.on("word_to_user", send_word_to_user)
@@ -134,6 +141,7 @@ game.em.on("server_everybody_has_given_answer",
 game.em.on("server_update_results", server_update_results)
 game.em.on("server_show_scoreboard", server_show_scoreboard)
 game.em.on("server_switch_player", server_switch_player)
+game.em.on("server_set_player_team", server_set_player_team)
 
 
 @socketio.on("player_connect")
@@ -181,6 +189,13 @@ def handle_switch_to_next_player():
     # eventlet.sleep(0)
     game.em.emit("switch_to_next_player")
     # eventlet.sleep(0)
+    emit("change_player_view", "server_pre_turn", broadcast=True)
+
+
+@socketio.on("change_player_view_to_words")
+def handle_change_player_view_to_words():
+    # eventlet.sleep(0)
+    emit("change_player_view", "player_prompt_answer", broadcast=True)
 
 
 @socketio.on("prompt_answer")
@@ -192,7 +207,6 @@ def handle_prompt_answer(data):
                          "prompt_id": prompt_data["prompt_id"],
                          "answer": prompt_data["prompt_answer"]}
 
-    game.em.emit("player_answer", data_for_function)
     # eventlet.sleep(0)
 
 
@@ -223,6 +237,37 @@ def handle_player_skip(data):
     # eventlet.sleep(0)
     # game.em.emit("player_skip", data_for_function)
     game.em.emit("player_skip")
+    # eventlet.sleep(0)
+
+
+@socketio.on("player_start_turn_button")
+def handle_player_start_turn_button(data):
+     # {"player_id": 0, "prompt_id": 1, "voted_for": 0}
+    # eventlet.sleep(0)
+    skip_data = json.loads(data)
+
+    data_for_function = {"player_id": ga.get_player_id_from_name(skip_data["player_name"]),
+                         "prompt_id": skip_data["prompt_id"],
+                         "voted_for": skip_data["option_id"]}
+    print("player_skip", data_for_function)
+    # eventlet.sleep(0)
+    # game.em.emit("player_skip", data_for_function)
+    emit("server_start_prompt_answer_countdown", room=ga.main_screen_sid)
+    # eventlet.sleep(0)
+
+
+@socketio.on("player_team_button")
+def handle_player_team_button(data):
+     # {"player_id": 0, "prompt_id": 1, "voted_for": 0}
+    # eventlet.sleep(0)
+    team_data = json.loads(data)
+
+    data_for_function = {"player_sid": ga.get_player_sid_from_name(team_data["player_name"]),
+                         "player_name": team_data["player_name"],
+                         "player_team": team_data["player_team"]}
+    print("player team", data_for_function)
+    # eventlet.sleep(0)
+    game.em.emit("player_team", data_for_function)
     # eventlet.sleep(0)
 
 

@@ -27,7 +27,10 @@ class Game:
 
     answer_counter = 0
 
+    
     turn_order = {}
+    turn_order_player_name = {}
+    current_player = None
 
     prompt_answers = {}
 
@@ -82,6 +85,7 @@ class Game:
         em.on("start_waiting_for_players", self.start_waiting_for_players)
         em.on("start_prompt_vote_loop", self.start_prompt_vote_loop)
         em.on("switch_to_next_player", self.switch_to_next_player)
+        em.on("player_team", self.set_player_teams)
 
         while True:
             if self.waiting_for_user_input == True:
@@ -97,6 +101,11 @@ class Game:
         for player in self.connected_players:
             if player.player_name == name:
                 return player.player_id
+
+    def get_player_sid_from_name(self, name):
+        for player in self.connected_players:
+            if player.player_name == name:
+                return player.player_sid
 
     def send_prompts_to_players(self):
         prompt_to_send = self.select_word_to_play()[0]
@@ -364,7 +373,13 @@ class Game:
         for i in range(0, len(self.prompt_answers)):
             self.prompt_answers[i] = []
 
-        self.get_player_order()        
+        self.get_player_order()
+
+        # get turn order and assign the first player
+        self.current_player = self.turn_order.get(1)
+        em.emit("server_assign_current_player", self.turn_order_player_name.get(1))
+        print(self.turn_order)
+        print(self.current_player)
 
         # self.assign_players_to_prompts()
 
@@ -576,8 +591,18 @@ class Game:
     def get_player_order(self):
         cnt=1
         for player in self.connected_players:
-            self.turn_order.update({player.player_sid: cnt})
+            self.turn_order.update({cnt: player.player_sid})
+            self.turn_order_player_name.update({cnt: player.player_name})
             cnt+=1
+
+    def set_player_teams(self, team):
+        # {"player_name": 0, "player_team": 1, "voted_for": 0}
+        print("set_player_teams", team)
+        for player in self.connected_players:
+            if player.player_sid == team["player_sid"]:
+                player.player_team = team["player_team"]
+                em.emit("server_set_player_team", team)
+        
             
 
 

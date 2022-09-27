@@ -1,12 +1,14 @@
 let all_divs = []
 let connected_players = []
 
-let prompt_answer_countdown = 90
+let prompt_answer_countdown = 5
 let all_answers_given = false
+let ready_button_pressed = false
 
 let vote_countdown = 0
 let current_prompt = "The worst thing a plastic surgeon could say after he botched your surgery: \u201cI\u2019m sorry, I accidentally <BLANK>"
 let current_options = ["Hallo", "Zwei Worte", "Drei Worte hier"]
+let current_player = ""
 
 let current_options_authors = []
 let current_options_voters = []
@@ -156,7 +158,8 @@ async function start_vote_countdown(seconds) {
 
 async function start_prompt_answer_countdown(seconds) {
 
-    
+    set_active_screen("server_waiting_for_player_input")
+
     while (seconds > 0) {
 
         // is true, when socket get the event from server
@@ -183,27 +186,35 @@ async function start_prompt_answer_countdown(seconds) {
 }
 
 async function start_pre_turn_countdown(seconds) {
+    
+    set_active_screen("server_pre_turn")
+    
+
     while (seconds > 0) {
 
+        document.querySelector("#server_start_turn_button").onclick = () => {
+            ready_button_pressed = true
+        }
 
         if (ready_button_pressed == true) {
-            console.log("votes givennnn")
+            console.log("ready button pressed")
             break
         }
 
         await Sleep(1000)
         seconds--
-        document.querySelector("#server_countdown_prompt").innerText = seconds
+        document.querySelector("#server_pre_turn_countdown").innerText = seconds
 
 
 
 
 
     }
-    console.log("Waiting for results event")
+    console.log("Waiting for player to be ready")
     ready_button_pressed = false
-    vote_countdown = 15
-    document.querySelector("#server_countdown_prompt").innerText = 15
+
+    start_prompt_answer_countdown(90)
+    change_player_view_to_words()
 }
 
 function Sleep(milliseconds) {
@@ -245,6 +256,9 @@ function add_player_to_display(name) {
 
     let node = document.createElement("LI")
     let player_node = document.createTextNode(name)
+    
+    node.id = "player_" + name
+
     node.appendChild(player_node)
     players_list.appendChild(node)
 
@@ -255,6 +269,12 @@ function add_player(name) {
 
     connected_players.push(name)
     add_player_to_display(name)
+
+}
+
+function assign_current_player(name) {
+
+    current_player = name
 
 }
 
@@ -312,6 +332,12 @@ function display_prompt(prompt) {
     // TO DO clean it up
     document.getElementsByClassName("server_current_prompt")[0].innerText = current_prompt
     document.getElementsByClassName("server_current_prompt")[1].innerText = current_prompt
+
+}
+
+function set_player_team(p_name, p_team) {
+
+    document.getElementById("player_" + p_name).style.backgroundColor = p_team;
 
 }
 

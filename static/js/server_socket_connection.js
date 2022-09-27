@@ -8,6 +8,12 @@ function socket_events() {
 
     });
 
+    socket.on("server_assign_current_player", function(player_name) {
+
+        assign_current_player(player_name)
+
+    });
+
     socket.on("server_player_has_submitted_answer", function(player_name) {
 
         make_player_appear_with_background_color(player_name)
@@ -72,8 +78,35 @@ function socket_events() {
     });
 
     socket.on("server_switch_player", function() {
+        
+        start_pre_turn_countdown(15)
+        
+        // start_prompt_answer_countdown(90)
 
+    });
+
+    socket.on("server_start_prompt_answer_countdown", function() {
+        
+        // start_pre_turn_countdown(15)
+        
         start_prompt_answer_countdown(90)
+
+    });
+
+    socket.on("server_set_player_team", function(data) {
+        
+        let player_team_object = JSON.parse(data)
+
+        console.log(player_team_object)
+        
+        p_team = player_team_object["player_team"].toLowerCase()
+        p_name = player_team_object["player_name"]
+
+        
+        console.log(p_team)
+        console.log(p_name)
+
+        set_player_team(p_name, p_team)
 
     });
 
@@ -128,6 +161,13 @@ function start_vote_loop() {
 function switch_to_next_player() {
 
     socket.emit("switch_to_next_player")
+
+
+}
+
+function change_player_view_to_words() {
+
+    socket.emit("change_player_view_to_words")
 
 
 }
