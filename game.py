@@ -86,6 +86,7 @@ class Game:
         em.on("start_prompt_vote_loop", self.start_prompt_vote_loop)
         em.on("switch_to_next_player", self.switch_to_next_player)
         em.on("player_team", self.set_player_teams)
+        em.on("check_correct_number_of_players_on_teams", self.check_correct_number_of_players_on_teams)
 
         while True:
             if self.waiting_for_user_input == True:
@@ -602,6 +603,32 @@ class Game:
             if player.player_sid == team["player_sid"]:
                 player.player_team = team["player_team"]
                 em.emit("server_set_player_team", team)
+
+    def check_correct_number_of_players_on_teams(self):
+        red_cnt = 0
+        blue_cnt = 0
+        green_cnt = 0
+        yellow_cnt = 0
+        print("check_correct_number_of_players_on_teams")
+        for player in self.connected_players:
+            if player.player_team == "red":
+                red_cnt+=1
+            elif player.player_team == "blue":
+                blue_cnt+=1
+            elif player.player_team == "green":
+                green_cnt+=1
+            elif player.player_team == "yellow":
+                yellow_cnt+=1
+        if sum([red_cnt, blue_cnt, green_cnt, yellow_cnt]) == len(self.connected_players):
+            em.emit("server_check_each_player_has_team")
+        if (red_cnt >= 2 or red_cnt == 0) and (blue_cnt >= 2 or blue_cnt == 0) and (green_cnt >= 2 or green_cnt == 0) and (yellow_cnt >= 2 or yellow_cnt == 0):
+            em.emit("server_check_correct_number_of_players_on_teams")
+        
+        print(red_cnt)
+        print(blue_cnt)
+        print(green_cnt)
+        print(yellow_cnt)
+
         
             
 

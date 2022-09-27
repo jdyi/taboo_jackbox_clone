@@ -128,6 +128,21 @@ def server_set_player_team(data):
     # eventlet.sleep(0)
 
 
+def server_check_each_player_has_team():
+    # eventlet.sleep(0)
+    emit("server_check_each_player_has_team", room=ga.main_screen_sid)
+    # socketio.sleep(0)
+    # eventlet.sleep(0)
+
+
+def server_check_correct_number_of_players_on_teams():
+    # eventlet.sleep(0)
+    emit("server_check_correct_number_of_players_on_teams", room=ga.main_screen_sid)
+    # socketio.sleep(0)
+    # eventlet.sleep(0)
+
+
+
 game.em.on("prompt_to_user", send_prompt_to_user)
 game.em.on("new_prompt_to_user", send_new_prompt_to_user)
 game.em.on("word_to_user", send_word_to_user)
@@ -142,6 +157,8 @@ game.em.on("server_update_results", server_update_results)
 game.em.on("server_show_scoreboard", server_show_scoreboard)
 game.em.on("server_switch_player", server_switch_player)
 game.em.on("server_set_player_team", server_set_player_team)
+game.em.on("server_check_each_player_has_team", server_check_each_player_has_team)
+game.em.on("server_check_correct_number_of_players_on_teams", server_check_correct_number_of_players_on_teams)
 
 
 @socketio.on("player_connect")
@@ -190,6 +207,13 @@ def handle_switch_to_next_player():
     game.em.emit("switch_to_next_player")
     # eventlet.sleep(0)
     emit("change_player_view", "server_pre_turn", broadcast=True)
+
+
+@socketio.on("check_correct_number_of_players_on_teams")
+def handle_check_correct_number_of_players_on_teams():
+    # eventlet.sleep(0)
+    game.em.emit("check_correct_number_of_players_on_teams")
+    # eventlet.sleep(0)
 
 
 @socketio.on("change_player_view_to_words")

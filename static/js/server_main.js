@@ -14,6 +14,9 @@ let current_options_authors = []
 let current_options_voters = []
 let current_options_points = []
 
+let correct_number_of_players_on_teams = false
+let each_player_has_team = false
+
 let current_scores = {}
 
 
@@ -278,6 +281,18 @@ function assign_current_player(name) {
 
 }
 
+function check_each_player_has_team_true() {
+
+    each_player_has_team = true
+
+}
+
+function check_correct_number_of_players_on_teams_true() {
+
+    correct_number_of_players_on_teams = true
+
+}
+
 function set_all_divs() {
 
 
@@ -364,12 +379,24 @@ window.onload = () => {
     document.querySelector("#server_start_game").onclick = () => {
 
         console.log("Start Game Button pressed")
+
+        check_correct_number_of_players_on_teams()
         
+        if (each_player_has_team == false) {
 
-        generate_player_list_waiting_for_player_input()
+            document.querySelector("#server_error_correct_number_of_players_on_teams").innerText = "Each player must select a team!"
 
-        start_game()
+        }
+        else if (correct_number_of_players_on_teams == false) {
 
+            document.querySelector("#server_error_correct_number_of_players_on_teams").innerText = "Each of the selected teams must have at least 2 players!"
+
+        }
+        else {
+            generate_player_list_waiting_for_player_input()
+
+            start_game()
+        }
 
 
     }

@@ -132,6 +132,14 @@ function socket_events() {
         console.log("debug msg:", msg)
     });
 
+    socket.on("server_check_each_player_has_team", function() {
+        check_each_player_has_team_true()
+    });
+
+    socket.on("server_check_correct_number_of_players_on_teams", function() {
+        check_correct_number_of_players_on_teams_true()
+    });
+
 }
 
 function connect_to_socket(address) {
@@ -168,6 +176,13 @@ function switch_to_next_player() {
 function change_player_view_to_words() {
 
     socket.emit("change_player_view_to_words")
+
+
+}
+
+function check_correct_number_of_players_on_teams() {
+
+    socket.emit("check_correct_number_of_players_on_teams")
 
 
 }
