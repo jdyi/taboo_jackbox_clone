@@ -1,8 +1,9 @@
 let all_divs = []
 let connected_players = []
 
-let prompt_answer_countdown = 5
+let prompt_answer_countdown = 20
 let all_answers_given = false
+
 let ready_button_pressed = false
 
 let vote_countdown = 0
@@ -191,7 +192,6 @@ async function start_prompt_answer_countdown(seconds) {
 async function start_pre_turn_countdown(seconds) {
     
     set_active_screen("server_pre_turn")
-    
 
     while (seconds > 0) {
 
@@ -214,10 +214,13 @@ async function start_pre_turn_countdown(seconds) {
 
     }
     console.log("Waiting for player to be ready")
-    ready_button_pressed = false
+
+    console.log("ready_button_pressed value", ready_button_pressed)
 
     start_prompt_answer_countdown(90)
     change_player_view_to_words()
+
+    ready_button_pressed = false
 }
 
 function Sleep(milliseconds) {
@@ -278,16 +281,18 @@ function add_player(name) {
 function assign_current_player(name) {
 
     current_player = name
+    
+    document.getElementById("current_player").innerText += current_player
 
 }
 
-function check_each_player_has_team_true() {
+async function check_each_player_has_team_true() {
 
     each_player_has_team = true
 
 }
 
-function check_correct_number_of_players_on_teams_true() {
+async function check_correct_number_of_players_on_teams_true() {
 
     correct_number_of_players_on_teams = true
 
@@ -353,6 +358,7 @@ function display_prompt(prompt) {
 function set_player_team(p_name, p_team) {
 
     document.getElementById("player_" + p_name).style.backgroundColor = p_team;
+    document.getElementById("player_" + p_name).style.color = "lightgrey"
 
 }
 
@@ -382,20 +388,24 @@ window.onload = () => {
 
         check_correct_number_of_players_on_teams()
         
+        console.log("each_player_has_team value", each_player_has_team)
+        console.log("correct_number_of_players_on_teams value", correct_number_of_players_on_teams)
         if (each_player_has_team == false) {
 
             document.querySelector("#server_error_correct_number_of_players_on_teams").innerText = "Each player must select a team!"
 
         }
-        else if (correct_number_of_players_on_teams == false) {
+        if (each_player_has_team == true && correct_number_of_players_on_teams == false) {
 
             document.querySelector("#server_error_correct_number_of_players_on_teams").innerText = "Each of the selected teams must have at least 2 players!"
 
         }
-        else {
+        else if (each_player_has_team == true && correct_number_of_players_on_teams == true) {
+
             generate_player_list_waiting_for_player_input()
 
             start_game()
+
         }
 
 
@@ -418,6 +428,5 @@ window.onload = () => {
 
 
     }
-
 
 }

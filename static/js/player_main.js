@@ -228,7 +228,6 @@ window.onload = () => {
 
         let target = getEventTarget(event)
         handle_player_start_turn_button(target.id)
-        set_active_screen('player_prompt_answer')
 
     }
     

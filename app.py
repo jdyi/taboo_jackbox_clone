@@ -28,6 +28,13 @@ def send_word_to_user(data):
     emit("update_current_word", json.dumps(data), room=data["recipient"])
     # socketio.sleep(0)
 
+def send_wait_screen_to_user(data):
+    emit("change_player_view", "player_wait", room=data["recipient"])
+    # socketio.sleep(0)
+
+def send_word_play_screen_to_user(data):
+    emit("change_player_view", "player_prompt_answer", room=data["recipient"])
+    # socketio.sleep(0)
 
 def thread_handling():
     while False:
@@ -114,10 +121,12 @@ def server_show_scoreboard(data):
     # eventlet.sleep(0)
 
 
-def server_switch_player():
+def server_switch_player(data):
     # eventlet.sleep(0)
+    sid = data["sid"]
     emit("server_switch_player", room=ga.main_screen_sid)
     # socketio.sleep(0)
+    emit("change_player_view", "server_pre_turn", room=sid)
     # eventlet.sleep(0)
 
 
@@ -159,6 +168,8 @@ game.em.on("server_switch_player", server_switch_player)
 game.em.on("server_set_player_team", server_set_player_team)
 game.em.on("server_check_each_player_has_team", server_check_each_player_has_team)
 game.em.on("server_check_correct_number_of_players_on_teams", server_check_correct_number_of_players_on_teams)
+game.em.on("wait_screen_to_user", send_wait_screen_to_user)
+game.em.on("word_play_screen_to_user", send_word_play_screen_to_user)
 
 
 @socketio.on("player_connect")
@@ -206,7 +217,6 @@ def handle_switch_to_next_player():
     # eventlet.sleep(0)
     game.em.emit("switch_to_next_player")
     # eventlet.sleep(0)
-    emit("change_player_view", "server_pre_turn", broadcast=True)
 
 
 @socketio.on("check_correct_number_of_players_on_teams")
@@ -219,7 +229,9 @@ def handle_check_correct_number_of_players_on_teams():
 @socketio.on("change_player_view_to_words")
 def handle_change_player_view_to_words():
     # eventlet.sleep(0)
-    emit("change_player_view", "player_prompt_answer", broadcast=True)
+    # emit("change_player_view", "player_prompt_answer", broadcast=True)
+    game.em.emit("change_screen_to_words_for_players")
+    # eventlet.sleep(0)
 
 
 @socketio.on("prompt_answer")
@@ -275,8 +287,17 @@ def handle_player_start_turn_button(data):
                          "voted_for": skip_data["option_id"]}
     print("player_skip", data_for_function)
     # eventlet.sleep(0)
+    game.em.emit("change_screen_to_words_for_players")
     # game.em.emit("player_skip", data_for_function)
-    emit("server_start_prompt_answer_countdown", room=ga.main_screen_sid)
+    emit("set_ready_button_pressed_true", room=ga.main_screen_sid)
+    # eventlet.sleep(0)
+
+
+@socketio.on("send_prompts_to_players")
+def handle_send_prompts_to_players():
+    # eventlet.sleep(0)
+    game.em.emit("send_prompts_to_players")
+    # game.em.emit("player_skip", data_for_function)
     # eventlet.sleep(0)
 
 

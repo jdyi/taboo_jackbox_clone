@@ -77,6 +77,12 @@ function socket_events() {
 
     });
 
+    socket.on("set_ready_button_pressed_true", function() {
+        
+        ready_button_pressed = true
+
+    });
+
     socket.on("server_switch_player", function() {
         
         start_pre_turn_countdown(15)
@@ -180,10 +186,16 @@ function change_player_view_to_words() {
 
 }
 
-function check_correct_number_of_players_on_teams() {
+async function check_correct_number_of_players_on_teams() {
 
     socket.emit("check_correct_number_of_players_on_teams")
 
+
+}
+
+function send_prompts_to_players() {
+
+    socket.emit("send_prompts_to_players")
 
 }
 

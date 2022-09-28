@@ -27,9 +27,10 @@ class Game:
 
     answer_counter = 0
 
+    current_player_count = 0
+
     
-    turn_order = {}
-    turn_order_player_name = {}
+    turn_order = []
     current_player = None
 
     prompt_answers = {}
@@ -87,6 +88,8 @@ class Game:
         em.on("switch_to_next_player", self.switch_to_next_player)
         em.on("player_team", self.set_player_teams)
         em.on("check_correct_number_of_players_on_teams", self.check_correct_number_of_players_on_teams)
+        em.on("send_prompts_to_players", self.send_prompts_to_players)
+        em.on("change_screen_to_words_for_players", self.change_screen_to_words_for_players)
 
         while True:
             if self.waiting_for_user_input == True:
@@ -108,16 +111,44 @@ class Game:
             if player.player_name == name:
                 return player.player_sid
 
+    def get_player_from_sid(self, sid):
+        for player in self.connected_players:
+            if player.player_sid == sid:
+                return player
+
+    def change_screen_to_words_for_players(self):
+        print("This is player", self.current_player.player_name)
+        sid = self.current_player.player_sid
+        # send taboo word screen to current player
+        em.emit("word_play_screen_to_user", {"recipient": sid})
+        for word_to_player in self.connected_players:
+            # send taboo word screen to players not on same team as current player
+            if word_to_player.player_team != self.current_player.player_team:
+                em.emit("word_play_screen_to_user", {"recipient": word_to_player.player_sid})
+
+            # send waiting screen to players on same team as current player
+            elif word_to_player.player_team == self.current_player.player_team and word_to_player.player_sid != self.current_player.player_sid:
+                em.emit("wait_screen_to_user", {"recipient": word_to_player.player_sid})
+
     def send_prompts_to_players(self):
         prompt_to_send = self.select_word_to_play()[0]
         print("This is prompt_to_send", prompt_to_send)
         taboo_words = db.get_specific_taboo_words(prompt_to_send)
-        for player in range(len(self.connected_players)):
-            print("This is player", player)
-            print("This is connectedplayer indexed", self.connected_players[player])
-            sid = self.connected_players[player].player_sid
-            em.emit("prompt_to_user", {
-                    "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": 0, "taboo_words": taboo_words})
+        print("This is player", self.current_player.player_name)
+        sid = self.current_player.player_sid
+        # send taboo words to current player
+        em.emit("prompt_to_user", {
+                "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": 0, "taboo_words": taboo_words})
+        for word_to_player in self.connected_players:
+            # send taboo words to players not on same team as current player
+            if word_to_player.player_team != self.current_player.player_team:
+                em.emit("prompt_to_user", {
+                        "prompt_text": prompt_to_send, "recipient": word_to_player.player_sid, "prompt_id": 0, "taboo_words": taboo_words})
+
+            # send waiting screen to players on same team as current player
+            elif word_to_player.player_team == self.current_player.player_team and word_to_player.player_sid != self.current_player.player_sid:
+                em.emit("wait_screen_to_user", {"recipient": word_to_player.player_sid})
+                
 
 #    def send_prompts_to_players(self):
 #        for index, player_id_list in enumerate(self.prompt_assignments):
@@ -136,12 +167,15 @@ class Game:
         prompt_to_send = self.select_word_to_play()[0]
         print("This is prompt_to_send", prompt_to_send)
         taboo_words = db.get_specific_taboo_words(prompt_to_send)
-        for player in range(len(self.connected_players)):
-            print("This is player", player)
-            print("This is connectedplayer indexed", self.connected_players[player])
-            sid = self.connected_players[player].player_sid
-            em.emit("new_prompt_to_user", {
-                    "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": 0, "taboo_words": taboo_words})
+        sid = self.current_player.player_sid
+        # send taboo words to current player
+        em.emit("new_prompt_to_user", {
+                "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": 0, "taboo_words": taboo_words})
+        for word_to_player in self.connected_players:
+            # send taboo words to players not on same team as current player
+            if word_to_player.player_team != self.current_player.player_team:
+                em.emit("new_prompt_to_user", {
+                        "prompt_text": prompt_to_send, "recipient": word_to_player.player_sid, "prompt_id": 0, "taboo_words": taboo_words})
 
 
 #    def send_new_prompts_to_players_after_skip(self):
@@ -269,10 +303,6 @@ class Game:
         for p in self.connected_players:
             print(p.player_id, p.player_name, p.player_score, p.player_sid)
 
-    def get_player_turn_order(self):
-        p_list = list(range(1,len(self.connected_players)+1))
-        random.shuffle(p_list)
-        return p_list
 
 #    def assign_players_to_prompts(self):
 #
@@ -377,10 +407,10 @@ class Game:
         self.get_player_order()
 
         # get turn order and assign the first player
-        self.current_player = self.turn_order.get(1)
-        em.emit("server_assign_current_player", self.turn_order_player_name.get(1))
-        print(self.turn_order)
-        print(self.current_player)
+        self.current_player = self.get_player_from_sid(self.turn_order[self.current_player_count].get("player_sid"))
+        em.emit("server_assign_current_player", self.turn_order[self.current_player_count].get("player_name"))
+        print("this is the current player ", self.current_player.player_sid)
+        print("this is the turn order ", self.turn_order)
 
         # self.assign_players_to_prompts()
 
@@ -456,9 +486,16 @@ class Game:
             return False
 
     def switch_to_next_player(self):
-        
-        em.emit("server_switch_player")
-        return "dsa"
+        if self.current_player_count == len(self.connected_players):
+            em.emit("end_game")
+        else:
+            self.current_player_count += 1
+            self.current_player = self.get_player_from_sid(self.turn_order[self.current_player_count].get("player_sid"))
+            for player in self.connected_players:
+                if player.player_sid == self.current_player.player_sid:
+                    em.emit("server_switch_player", {"sid": player.player_sid})
+                else:
+                    em.emit("wait_screen_to_user", {"recipient": player.player_sid})
 
     def start_prompt_vote_loop(self):
         em.emit("change_game_state", 2)
@@ -589,12 +626,54 @@ class Game:
         self.waiting_for_user_input = False
         print("cD stop")
 
-    def get_player_order(self):
-        cnt=1
+    def get_players_on_specific_team(self, team):
+        players_on_team = []
         for player in self.connected_players:
-            self.turn_order.update({cnt: player.player_sid})
-            self.turn_order_player_name.update({cnt: player.player_name})
+            if player.player_team == team:
+                players_on_team.append(player)
+
+        return players_on_team
+
+    def get_player_order(self):
+        red_team_list = self.get_players_on_specific_team("red")
+        blue_team_list = self.get_players_on_specific_team("blue")
+        green_team_list = self.get_players_on_specific_team("green")
+        yellow_team_list = self.get_players_on_specific_team("yellow")
+        cnt=1
+        for p in red_team_list:
+            self.turn_order.append({"player_sid": p.player_sid, 
+                                    "player_name": p.player_name, 
+                                    "turn_order": cnt, 
+                                    "team":"red"})
             cnt+=1
+        cnt=1
+        for pb in blue_team_list:
+            self.turn_order.append({"player_sid": pb.player_sid, 
+                                    "player_name": pb.player_name, 
+                                    "turn_order": cnt, 
+                                    "team":"blue"})
+            cnt+=1
+        cnt=1
+        for pg in green_team_list:
+            self.turn_order.append({"player_sid": pg.player_sid, 
+                                    "player_name": pg.player_name, 
+                                    "turn_order": cnt, 
+                                    "team":"green"})
+            cnt+=1
+        cnt=1
+        for py in yellow_team_list:
+            self.turn_order.append({"player_sid": py.player_sid, 
+                                    "player_name": py.player_name, 
+                                    "turn_order": cnt, 
+                                    "team":"yellow"})
+            cnt+=1
+        cnt=1
+
+        # sort list of players by turn and then team. Example: player 1 red goes first,
+        # player blue 1 goes second, player 2 red goes third and player 2 blue goes fourth
+        self.turn_order = sorted(self.turn_order, key = lambda player: (player['turn_order'], player['team']))
+
+        print(self.turn_order)
 
     def set_player_teams(self, team):
         # {"player_name": 0, "player_team": 1, "voted_for": 0}
@@ -620,17 +699,15 @@ class Game:
             elif player.player_team == "yellow":
                 yellow_cnt+=1
         if sum([red_cnt, blue_cnt, green_cnt, yellow_cnt]) == len(self.connected_players):
+            print("sum boolean has passed")
             em.emit("server_check_each_player_has_team")
         if (red_cnt >= 2 or red_cnt == 0) and (blue_cnt >= 2 or blue_cnt == 0) and (green_cnt >= 2 or green_cnt == 0) and (yellow_cnt >= 2 or yellow_cnt == 0):
+            print("cnt booleans have passed")
             em.emit("server_check_correct_number_of_players_on_teams")
         
-        print(red_cnt)
-        print(blue_cnt)
-        print(green_cnt)
-        print(yellow_cnt)
 
-        
-            
+
+
 
 
 sampleNames = ["Jene",
