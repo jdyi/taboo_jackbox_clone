@@ -126,9 +126,9 @@ class Game:
             if word_to_player.player_team != self.current_player.player_team:
                 em.emit("word_play_screen_to_user", {"recipient": word_to_player.player_sid})
 
-            # send waiting screen to players on same team as current player
+            # send guess screen to players on same team as current player
             elif word_to_player.player_team == self.current_player.player_team and word_to_player.player_sid != self.current_player.player_sid:
-                em.emit("wait_screen_to_user", {"recipient": word_to_player.player_sid})
+                em.emit("guess_screen_to_user", {"recipient": word_to_player.player_sid})
 
     def send_prompts_to_players(self):
         prompt_to_send = self.select_word_to_play()[0]
@@ -145,9 +145,9 @@ class Game:
                 em.emit("prompt_to_user", {
                         "prompt_text": prompt_to_send, "recipient": word_to_player.player_sid, "prompt_id": 0, "taboo_words": taboo_words})
 
-            # send waiting screen to players on same team as current player
+            # send guess screen to players on same team as current player
             elif word_to_player.player_team == self.current_player.player_team and word_to_player.player_sid != self.current_player.player_sid:
-                em.emit("wait_screen_to_user", {"recipient": word_to_player.player_sid})
+                em.emit("guess_screen_to_user", {"recipient": word_to_player.player_sid})
                 
 
 #    def send_prompts_to_players(self):
@@ -408,7 +408,7 @@ class Game:
 
         # get turn order and assign the first player
         self.current_player = self.get_player_from_sid(self.turn_order[self.current_player_count].get("player_sid"))
-        em.emit("server_assign_current_player", self.turn_order[self.current_player_count].get("player_name"))
+        em.emit("server_assign_current_player", self.current_player.player_name)
         print("this is the current player ", self.current_player.player_sid)
         print("this is the turn order ", self.turn_order)
 
@@ -486,11 +486,12 @@ class Game:
             return False
 
     def switch_to_next_player(self):
-        if self.current_player_count == len(self.connected_players):
+        if self.current_player_count == len(self.connected_players) - 1:
             em.emit("end_game")
         else:
             self.current_player_count += 1
             self.current_player = self.get_player_from_sid(self.turn_order[self.current_player_count].get("player_sid"))
+            em.emit("server_assign_current_player", self.current_player.player_name)
             for player in self.connected_players:
                 if player.player_sid == self.current_player.player_sid:
                     em.emit("server_switch_player", {"sid": player.player_sid})

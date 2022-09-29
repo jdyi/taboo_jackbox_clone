@@ -218,8 +218,10 @@ async function start_pre_turn_countdown(seconds) {
     console.log("ready_button_pressed value", ready_button_pressed)
 
     start_prompt_answer_countdown(90)
-    change_player_view_to_words()
 
+    if (ready_button_pressed == false) {
+        change_player_view_to_words()
+    }
     ready_button_pressed = false
 }
 
@@ -283,6 +285,7 @@ function assign_current_player(name) {
     current_player = name
     
     document.getElementById("current_player").innerText += current_player
+    console.log("Adding current player name which is...", name)
 
 }
 
