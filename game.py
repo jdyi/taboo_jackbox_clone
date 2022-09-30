@@ -517,9 +517,8 @@ class Game:
     def switch_to_next_player(self):
         # if self.current_player_count == len(self.turn_order) - 1:
         if self.current_player_count == len(self.connected_players) - 1:
-            em.emit("end_game")
             em.emit("server_show_end_game_scoreboard", self.get_scoreboard())
-            print("this is the endgame scoreboard " , self.get_scoreboard())
+            em.emit("end_game")
             print("All turns have been completed. Ending game!")
         else:
             self.current_player_count += 1
