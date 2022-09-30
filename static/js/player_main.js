@@ -112,8 +112,7 @@ function handle_player_connect(player_name, player_ip_address) {
     update_displayed_player_name()
     console.log(player_name, player_ip_address)
     connect_to_socket('http://127.0.0.1:25565', player_name)
-    //connect_to_socket('http://192.168.0.17:25565', player_name)
-    //connect_to_socket('http://68.105.28.11:25565', player_name)
+    // connect_to_socket('http://192.168.0.17:25565', player_name)
 
 }
 

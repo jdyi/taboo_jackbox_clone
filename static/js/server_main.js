@@ -439,8 +439,7 @@ window.onload = () => {
         set_active_screen('server_waiting_for_players')
 
         connect_to_socket('http://127.0.0.1:25565')
-        //connect_to_socket('http://192.168.0.17:25565')
-        //connect_to_socket('http://68.105.28.11:25565')
+        // connect_to_socket('http://192.168.0.17:25565')
 
 
 
