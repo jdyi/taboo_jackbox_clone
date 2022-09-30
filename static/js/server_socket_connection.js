@@ -28,6 +28,21 @@ function socket_events() {
 
     });
 
+    socket.on("server_add_points_to_scoreboard", function(data) {
+
+        let score_object = JSON.parse(data)
+
+        console.log(score_object)
+        
+        p_name = score_object["player_name"]
+        p_score = score_object["player_score"]
+
+        console.log("Add point after success to scoreboard")
+
+        add_points_to_scoreboard(p_name, p_score)
+
+    });
+
     socket.on("server_update_prompt_with_vote_options", function(data) {
 
         console.log("HIER BIN ICHHHHHHHHH")
@@ -64,16 +79,33 @@ function socket_events() {
 
         let scores_object = JSON.parse(data)
 
-        console.log(data)
+        console.log("server_show_scoreboard ", data)
 
-        console.log(scores_object)
+        console.log("scores_object ", scores_object)
 
         current_scores = scores_object
 
         update_scoreboard()
 
-        set_active_screen("server_scores")
+    });
 
+    socket.on("server_show_end_game_scoreboard", function(data) {
+
+        let scores_object = JSON.parse(data)
+
+        console.log("server_show_end_game_scoreboard ", data)
+
+        console.log("scores_object ", scores_object)
+
+        end_game_scores = scores_object
+
+        update_end_game_scoreboard()
+
+    });
+
+    socket.on("server_end_game", function(data) {
+
+        end_game()
 
     });
 
@@ -95,7 +127,7 @@ function socket_events() {
         
         // start_pre_turn_countdown(15)
         
-        start_prompt_answer_countdown(90)
+        start_prompt_answer_countdown(18)
 
     });
 
@@ -197,6 +229,18 @@ function send_prompts_to_players() {
 
     socket.emit("send_prompts_to_players")
 
+}
+
+function send_server_start_turn_button(o_id, p_id, p_name) {
+    let object_to_send = {
+        option_id: o_id,
+        prompt_id: p_id,
+        player_name: p_name
+    }
+
+    console.log(object_to_send)
+
+    socket.emit("player_start_turn_button", JSON.stringify(object_to_send))
 }
 
 function restart_game() {

@@ -146,6 +146,17 @@ function handle_player_skip(option) {
 
 }
 
+function handle_player_success(option) {
+
+    console.log(option)
+
+    let options_id = parseInt(option.slice(-1))
+    options_id--
+
+    send_player_success(options_id, current_prompt_id, my_player_name)
+
+}
+
 function handle_player_start_turn_button(option) {
 
     console.log(option)
@@ -165,6 +176,24 @@ function handle_player_team_button(option, color) {
     options_id--
 
     send_player_team_button(color, my_player_name)
+
+}
+
+function hide_skip_and_success() {
+
+    console.log("hiding skip and success")
+
+    document.getElementById("prompt_answer_submit").style.visibility = "hidden"
+    document.getElementById("prompt_success").style.visibility = "hidden"
+
+}
+
+function show_skip_and_success() {
+
+    console.log("showing skip and success")
+
+    document.getElementById("prompt_answer_submit").style.visibility = "visible"
+    document.getElementById("prompt_success").style.visibility = "visible"
 
 }
 
@@ -212,6 +241,14 @@ window.onload = () => {
         
     }
 
+    document.querySelector("#prompt_success").onclick = (event) => {
+        console.log("Player has pressed success")
+
+        let target = getEventTarget(event)
+        handle_player_success(target.id)
+        
+    }
+
     // https://stackoverflow.com/questions/5116929/get-clicked-li-from-ul-onclick
 
     document.querySelector("#player_vote_prompt > ul").onclick = (event) => {
@@ -223,7 +260,7 @@ window.onload = () => {
 
     }
 
-    document.querySelector("#server_start_turn_button").onclick = (event) => {
+    document.querySelector("#player_start_turn_button").onclick = (event) => {
         console.log("Player has pressed start turn button")
 
         let target = getEventTarget(event)

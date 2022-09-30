@@ -32,6 +32,7 @@ class Game:
     
     turn_order = []
     current_player = None
+    rounds = 3
 
     prompt_answers = {}
 
@@ -81,6 +82,7 @@ class Game:
         em.on("debug_msg", self.print_debug)
         em.on("player_answer", self.add_player_answer)
         em.on("player_skip", self.send_new_prompts_to_players_after_skip)
+        em.on("player_success", self.send_new_prompts_to_players_after_success)
         em.on("player_vote", self.add_player_vote)
         em.on("change_game_state", self.set_game_state)
         em.on("start_waiting_for_players", self.start_waiting_for_players)
@@ -121,10 +123,12 @@ class Game:
         sid = self.current_player.player_sid
         # send taboo word screen to current player
         em.emit("word_play_screen_to_user", {"recipient": sid})
+        em.emit("show_skip_and_success_to_user", {"recipient": sid})
         for word_to_player in self.connected_players:
             # send taboo word screen to players not on same team as current player
             if word_to_player.player_team != self.current_player.player_team:
                 em.emit("word_play_screen_to_user", {"recipient": word_to_player.player_sid})
+                em.emit("hide_skip_and_success_to_user", {"recipient": word_to_player.player_sid})
 
             # send guess screen to players on same team as current player
             elif word_to_player.player_team == self.current_player.player_team and word_to_player.player_sid != self.current_player.player_sid:
@@ -162,7 +166,7 @@ class Game:
 #                sid = self.connected_players[player-1].player_sid
 #                em.emit("prompt_to_user", {
 #                        "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": index, "taboo_words": taboo_words})
-    
+
     def send_new_prompts_to_players_after_skip(self):
         prompt_to_send = self.select_word_to_play()[0]
         print("This is prompt_to_send", prompt_to_send)
@@ -177,6 +181,29 @@ class Game:
                 em.emit("new_prompt_to_user", {
                         "prompt_text": prompt_to_send, "recipient": word_to_player.player_sid, "prompt_id": 0, "taboo_words": taboo_words})
 
+
+    def send_new_prompts_to_players_after_success(self):
+        prompt_to_send = self.select_word_to_play()[0]
+        print("This is prompt_to_send", prompt_to_send)
+        taboo_words = db.get_specific_taboo_words(prompt_to_send)
+        sid = self.current_player.player_sid
+        # add points because success was pressed
+        self.update_points_from_sid(sid, 1)
+        # send taboo words to current player
+        em.emit("new_prompt_to_user", {
+                "prompt_text": prompt_to_send, "recipient": sid, "prompt_id": 0, "taboo_words": taboo_words})
+        for word_to_player in self.connected_players:
+            # send taboo words to players not on same team as current player
+            if word_to_player.player_team != self.current_player.player_team:
+                em.emit("new_prompt_to_user", {
+                        "prompt_text": prompt_to_send, "recipient": word_to_player.player_sid, "prompt_id": 0, "taboo_words": taboo_words})
+
+
+    def update_points_from_sid(self, sid, amount):
+        for uplayer in self.connected_players:
+            if uplayer.player_sid == sid:
+                uplayer.add_points(amount)
+                em.emit("add_points_to_scoreboard", {"player_name": uplayer.player_name, "player_score": uplayer.player_score})
 
 #    def send_new_prompts_to_players_after_skip(self):
 #        for index, player_id_list in enumerate(self.prompt_assignments):
@@ -393,6 +420,8 @@ class Game:
 
     def start_game(self):
         em.emit("change_game_state", 1)
+        
+        em.emit("server_show_scoreboard", self.get_scoreboard())
 
         self.prompts_to_play = self.calc_prompts_amount(
             len(self.connected_players))
@@ -408,7 +437,7 @@ class Game:
 
         # get turn order and assign the first player
         self.current_player = self.get_player_from_sid(self.turn_order[self.current_player_count].get("player_sid"))
-        em.emit("server_assign_current_player", self.current_player.player_name)
+        em.emit("server_assign_current_player", {"player_name": self.current_player.player_name})
         print("this is the current player ", self.current_player.player_sid)
         print("this is the turn order ", self.turn_order)
 
@@ -486,12 +515,16 @@ class Game:
             return False
 
     def switch_to_next_player(self):
+        # if self.current_player_count == len(self.turn_order) - 1:
         if self.current_player_count == len(self.connected_players) - 1:
             em.emit("end_game")
+            em.emit("server_show_end_game_scoreboard", self.get_scoreboard())
+            print("this is the endgame scoreboard " , self.get_scoreboard())
+            print("All turns have been completed. Ending game!")
         else:
             self.current_player_count += 1
             self.current_player = self.get_player_from_sid(self.turn_order[self.current_player_count].get("player_sid"))
-            em.emit("server_assign_current_player", self.current_player.player_name)
+            em.emit("server_assign_current_player", {"player_name": self.current_player.player_name})
             for player in self.connected_players:
                 if player.player_sid == self.current_player.player_sid:
                     em.emit("server_switch_player", {"sid": player.player_sid})
@@ -672,7 +705,7 @@ class Game:
 
         # sort list of players by turn and then team. Example: player 1 red goes first,
         # player blue 1 goes second, player 2 red goes third and player 2 blue goes fourth
-        self.turn_order = sorted(self.turn_order, key = lambda player: (player['turn_order'], player['team']))
+        self.turn_order = sorted(self.turn_order, key = lambda player: (player['turn_order'], player['team'])) * self.rounds
 
         print(self.turn_order)
 

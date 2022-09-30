@@ -135,6 +135,22 @@ button {
     background-color: #8b94b7;
 }
 
+#server_end_game_scoreboard {
+    text-align: left;
+    column-count: 2;
+    font-size: 4em;
+    list-style-position: inside;
+}
+
+#server_end_game_scoreboard>li {
+    background-color: #b0bbe8;
+    ;
+}
+
+#server_end_game_scoreboard>li:nth-child(2n) {
+    background-color: #8b94b7;
+}
+
 #server_scores>h1 {
     font-size: 4em;
     margin-bottom: -0.8em;

@@ -16,6 +16,19 @@ function socket_events() {
 
     });
 
+    socket.on("hide_skip_and_success_to_user", function(msg) {
+
+        hide_skip_and_success()
+
+    });
+
+    socket.on("show_skip_and_success_to_user", function(msg) {
+
+        show_skip_and_success()
+
+    });
+
+
     socket.on("update_current_prompt", function(data) {
 
         let prompt_object = JSON.parse(data)
@@ -145,6 +158,18 @@ function send_player_skip(o_id, p_id, p_name) {
     console.log(object_to_send)
 
     socket.emit("player_skip", JSON.stringify(object_to_send))
+}
+
+function send_player_success(o_id, p_id, p_name) {
+    let object_to_send = {
+        option_id: o_id,
+        prompt_id: p_id,
+        player_name: p_name
+    }
+
+    console.log(object_to_send)
+
+    socket.emit("player_success", JSON.stringify(object_to_send))
 }
 
 function send_player_start_turn_button(o_id, p_id, p_name) {

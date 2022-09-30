@@ -19,6 +19,9 @@ let correct_number_of_players_on_teams = false
 let each_player_has_team = false
 
 let current_scores = {}
+let end_game_scores = {}
+
+let top_score_player = ""
 
 
 let voting_period_ended = false
@@ -48,7 +51,6 @@ function start_new_game() {
 function update_scoreboard() {
     let scores_list = document.querySelector("#server_scoreboard")
     scores_list.innerText = ""
-
     // sort by scores https: //stackoverflow.com/questions/1069666/sorting-javascript-object-by-property-value
     let sortable = [];
     for (let player in current_scores) {
@@ -64,9 +66,57 @@ function update_scoreboard() {
         let score_node = document.createTextNode("" + sortable[i][0] + " | " + sortable[i][1])
         node.appendChild(score_node)
 
+        node.id = "score_" + sortable[i][0]
+
         scores_list.appendChild(node)
     }
 
+
+}
+
+function update_end_game_scoreboard() {
+    let scores_list = document.querySelector("#server_end_game_scoreboard")
+    scores_list.innerText = ""
+    console.log("test scoreboard")
+    console.log(scores_list)
+    console.log("in update_scoreboard, this is the current_scores:", end_game_scores)
+    // sort by scores https: //stackoverflow.com/questions/1069666/sorting-javascript-object-by-property-value
+    let sortable = [];
+    for (let player in end_game_scores) {
+        sortable.push([player, end_game_scores[player]]);
+    }
+
+    sortable.sort(function(a, b) {
+        return b[1] - a[1];
+    });
+
+    for (let i = 0; i < sortable.length; i++) {
+        let node = document.createElement("LI")
+        let score_node = document.createTextNode("" + sortable[i][0] + " | " + sortable[i][1])
+        node.appendChild(score_node)
+
+        node.id = "end_game_score_" + sortable[i][0]
+
+        scores_list.appendChild(node)
+    }
+
+    top_score_player = sortable[0][0]
+    console.log("the top player is ", top_score_player)
+    console.log("the final scores list is ", scores_list)
+
+
+}
+
+function add_points_to_scoreboard(p_name, p_score) {
+
+    document.getElementById("score_" + p_name).innerText = p_name + " | " + p_score;
+
+}
+
+function end_game() {
+
+    set_active_screen("server_end_game")
+    document.getElementById("server_end_game_winner").innerText = top_score_player + " wins!";
 
 }
 
@@ -217,7 +267,7 @@ async function start_pre_turn_countdown(seconds) {
 
     console.log("ready_button_pressed value", ready_button_pressed)
 
-    start_prompt_answer_countdown(90)
+    start_prompt_answer_countdown(18)
 
     if (ready_button_pressed == false) {
         change_player_view_to_words()
@@ -284,7 +334,7 @@ function assign_current_player(name) {
 
     current_player = name
     
-    document.getElementById("current_player").innerText += current_player
+    document.getElementById("current_player_name").innerText = current_player
     console.log("Adding current player name which is...", name)
 
 }
@@ -365,6 +415,17 @@ function set_player_team(p_name, p_team) {
 
 }
 
+function handle_server_start_turn_button(option) {
+
+    console.log(option)
+
+    let options_id = parseInt(option.slice(-1))
+    options_id--
+
+    send_server_start_turn_button(options_id, current_prompt_id, my_player_name)
+
+}
+
 window.onload = () => {
 
     console.log("JS start now")
@@ -429,6 +490,14 @@ window.onload = () => {
 
 
 
+
+    }
+
+    document.querySelector("#server_start_turn_button").onclick = (event) => {
+        console.log("Server has pressed start turn button")
+
+        let target = getEventTarget(event)
+        handle_server_start_turn_button(target.id)
 
     }
 
