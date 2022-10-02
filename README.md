@@ -11,3 +11,11 @@ To play:
 4-8 players, 3 rounds only.
 
 Technologies used: Flask with Flask-Socket.IO on Server Side, Vanilla JavaScript on Client side, Python for the app and backend, and SQLite3 for database.
+
+
+TO DO:
+
+- Fix disconnect issue if player screen goes to sleep
+- Add sound
+- Switch to two rounds, add point phase maybe in between rounds
+- add waiting screen for first turn player
